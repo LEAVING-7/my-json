@@ -13,9 +13,8 @@ int main(int argc, char const* argv[])
     fread(buff, s.st_size, 1, test);
     PVL(s.st_size);
     PVL(buff);
-    
-
     fclose(test);
+
     JsonValue v = jsonParse(buff, s.st_size);
     jsonFree(&v);
 }
