@@ -1,3 +1,0 @@
-/home/ubuntu/workspace/c/my-json/build/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/workspace/c/my-json/build/CMakeFiles/edit_cache.dir
-/home/ubuntu/workspace/c/my-json/build/CMakeFiles/my-json.dir
