@@ -2,7 +2,7 @@
 #include "json.h"
 
 #ifdef __linux__
-    #include <sys/stat.h>
+#include <sys/stat.h>
 #endif
 
 #define IS_VALID_TYPE(t) ((t) >= 0 && (t) <= 6)
@@ -430,12 +430,12 @@ JsonValue parseJson(JsonStr* s, i32 depth)
 
 // API
 
-JsonValue jsonParse(char* str, size_t len)
+JsonValue jsonParse(char const* str, size_t len)
 {
     if (!str)
         panic("str is null");
     JsonStr s = {
-        .str = str,
+        .str = (char *)str,
         .len = len,
         .at = 0,
     };
@@ -448,7 +448,6 @@ void jsonFree(JsonValue* v)
     jsonValueFree(v);
 }
 
-
 JsonValue jsonGet(JsonValue* v, i32 argc, ...)
 {
     va_list args;
@@ -460,12 +459,13 @@ JsonValue jsonGet(JsonValue* v, i32 argc, ...)
     for (i32 i = 0; i < argc; i++) {
         switch (in->type) {
         case JSON_ARRAY: {
+            
             ret = arrayGet(in->arr, va_arg(args, i32));
             break;
         }
         case JSON_OBJECT: {
             JsonStack* str = jsonStackFrom(va_arg(args, char*));
-            JsonPair *p = hashmapGet(in->obj, &(JsonPair) { .k = *str });
+            JsonPair* p = hashmapGet(in->obj, &(JsonPair) { .k = *str });
             if (p == NULL) {
                 return (JsonValue) { .type = JSON_NUL, .i = 0 };
             }
@@ -485,16 +485,18 @@ JsonValue jsonGet(JsonValue* v, i32 argc, ...)
     return *ret;
 }
 
-JsonValue jsonFromFile(char const *filename) {
-    FILE *fp = fopen(filename, "r");
+JsonValue jsonFromFile(char const* filename)
+{
+    FILE* fp = fopen(filename, "r");
     size_t fileSize = 0;
     JsonValue ret;
-    char *buffer;
+    char* buffer;
 
-    if (!fp) panic("no such file");
+    if (!fp)
+        panic("no such file");
 
 #ifdef __linux__
-// just for fun
+    // just for fun
     struct stat fileStatus;
     stat(filename, &fileStatus);
     fileSize = fileStatus.st_size + 1;
@@ -503,7 +505,7 @@ JsonValue jsonFromFile(char const *filename) {
     fileSize = ftell(fp) + 1;
     rewind(fp);
 #endif
-    if((buffer = malloc(fileSize * sizeof(char)))== NULL)
+    if ((buffer = malloc(fileSize * sizeof(char))) == NULL)
         panic("out of memory");
 
     fread(buffer, fileSize - 1, 1, fp);

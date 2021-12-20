@@ -50,7 +50,7 @@ typedef struct {
     JsonValue v;
 } JsonPair;
 // API
-JsonValue jsonParse(char *str, size_t len);
+JsonValue jsonParse(char const *str, size_t len);
 JsonValue jsonFromFile(char const *filename);
 
 void jsonFree(JsonValue *v);
