@@ -505,7 +505,10 @@ JsonValue jsonFromFile(char const *filename) {
 #endif
     if((buffer = malloc(fileSize * sizeof(char)))== NULL)
         panic("out of memory");
+
+    fread(buffer, fileSize - 1, 1, fp);
     ret = jsonParse(buffer, fileSize);
+    free(buffer);
     fclose(fp);
     return ret;
 }
