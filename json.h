@@ -1,3 +1,5 @@
+#ifndef MY_JSON_H
+#define MY_JSON_H
 #include "array.h"
 #include "hashmap.h"
 #include "mytypedef.h"
@@ -49,4 +51,12 @@ typedef struct {
 } JsonPair;
 // API
 JsonValue jsonParse(char *str, size_t len);
+JsonValue jsonFromFile(char const *filename);
+
 void jsonFree(JsonValue *v);
+
+#define jsonGET(jvptr, ...) jsonGet(jvptr, ARG_COUNT(__VA_ARGS__), ##__VA_ARGS__)
+JsonValue jsonGet(JsonValue* v, i32 argc, ...);
+
+
+#endif //MY_JSON_H
