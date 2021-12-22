@@ -2,3 +2,4 @@ build/
 .vscode
 main.c
 test.json
+out.json

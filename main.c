@@ -1,7 +1,7 @@
 #include "json.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 int main(int argc, char const* argv[])
 {
     char const* json = "["
@@ -28,20 +28,12 @@ int main(int argc, char const* argv[])
                        "]";
     int i = strlen(json);
 
-    JsonValue v = jsonFromFile("../test.json");
-    JsonValue v2 = jsonParse(json, i);
+        
+    JsonValue v3 = jsonFromFile("filename.json");
 
-    JsonValue get = jsonGet(&v, 3, "members", 0, "age");
-    JsonValue mget = jsonGET(&v, "members", 0, "age");
-    assert(get.i == mget.i);
-    JsonValue powers = jsonGET(&v, "members", 2, "powers", 0);
+    JsonStack *s = jsonToString(&v3);
 
-    JsonValue age0 = jsonGET(&v2, 0, "age");
-    PVL(age0.i);
-
-    JsonValue secretIdentity1 = jsonGET(&v2, 1, "secretIdentity");
-    PVL(secretIdentity1.str->v);
-
-    jsonFree(&v2);
-    jsonFree(&v);
+    jsonToFile(&v3, "haha.json");
+    jsonStackFree(s);
+    jsonFree(&v3);
 }

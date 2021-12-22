@@ -51,9 +51,12 @@ typedef struct {
 } JsonPair;
 // API
 JsonValue jsonParse(char const *str, size_t len);
+JsonStack* jsonToString(JsonValue* v);
 JsonValue jsonFromFile(char const *filename);
+void jsonToFile(JsonValue* v, const char* filename);
 
 void jsonFree(JsonValue *v);
+void jsonStackFree(JsonStack* stack);
 
 #define jsonGET(jvptr, ...) jsonGet(jvptr, ARG_COUNT(__VA_ARGS__), ##__VA_ARGS__)
 JsonValue jsonGet(JsonValue* v, i32 argc, ...);

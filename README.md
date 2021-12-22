@@ -49,6 +49,15 @@
 
       jsonFree(&v2);
       jsonFree(&v);
+      // from file
+      JsonValue v3 = jsonFromFile("filename.json");
+      // to jsonStack
+      JsonStack *s = jsonToString(&v3);
+      // to file
+      jsonToFile(&v3, "haha.json");
+      // JsonStack must free
+      jsonStackFree(s);
+      jsonFree(&v3);
   }
   ```
   ```bash

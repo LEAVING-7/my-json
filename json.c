@@ -41,6 +41,17 @@ JsonStack* jsonStackFrom(char* str)
     memcpy(jsonStackCStr(ret), str, len);
     return ret;
 }
+void jsonStackPushStr(JsonStack* stack, char* str, size_t size)
+{
+    if (stack->top + size >= stack->cap) {
+        stack->v = (char*)realloc(stack->v, sizeof(char) * (stack->top + size) * 2);
+        if (!stack->v)
+            panic("out of memory");
+        stack->cap = (stack->top + size) * 2;
+    }
+    memcpy(stack->v + stack->top, str, size);
+    stack->top += size;
+}
 
 void jsonStackPush(JsonStack* stack, char v)
 {
@@ -51,6 +62,79 @@ void jsonStackPush(JsonStack* stack, char v)
         stack->cap *= 2;
     }
     stack->v[(++stack->top) - 1] = v;
+}
+
+static char buffer[40];
+void jsonStackPushValue(JsonStack* stack, JsonValue* v)
+{
+    i32 len;
+    switch (v->type) {
+    case JSON_NUL: {
+        jsonStackPushStr(stack, "null", 4);
+        return;
+    }
+    case JSON_BOOL: {
+        if (v->b)
+            jsonStackPushStr(stack, "true", 4);
+        else
+            jsonStackPushStr(stack, "false", 5);
+        return;
+    }
+    case JSON_INT: {
+        // using sprintf
+        memset(buffer, 0, 40);
+        snprintf(buffer, 39, "%ld", v->i);
+        len = strlen(buffer);
+        jsonStackPushStr(stack, buffer, len);
+        return;
+    }
+    case JSON_FLOAT: {
+        memset(buffer, 0, 40);
+        snprintf(buffer, 39, "%f", v->f);
+        len = strlen(buffer);
+        jsonStackPushStr(stack, buffer, len);
+        return;
+    }
+    case JSON_ARRAY: {
+        Array* a = v->arr;
+        len = a->len;
+        jsonStackPush(stack, '[');
+        for (size_t i = 0; i < a->len; i++) {
+            JsonValue* v = arrayGet(a, i);
+            jsonStackPushValue(stack, v);
+            if (--len)
+                jsonStackPush(stack, ',');
+        }
+        jsonStackPush(stack, ']');
+        return;
+    }
+    case JSON_OBJECT: {
+        HashMap* map = v->obj;
+        len = map->len;
+        jsonStackPush(stack, '{');
+        for (size_t i = 0; i < map->cap; i++) {
+            if (!map->slots[i].dib)
+                continue;
+            JsonPair* pair = map->slots[i].value;
+            jsonStackPush(stack, '"');
+            jsonStackPushStr(stack, pair->k.v, pair->k.top);
+            jsonStackPush(stack, '"');
+            jsonStackPush(stack, ':');
+            jsonStackPushValue(stack, &pair->v);
+            if (--len)
+                jsonStackPush(stack, ',');
+        }
+        jsonStackPush(stack, '}');
+        return;
+    }
+    case JSON_STRING: {
+        JsonStack* s = v->str;
+        jsonStackPush(stack, '"');
+        jsonStackPushStr(stack, s->v, s->top);
+        jsonStackPush(stack, '"');
+        return;
+    }
+    }
 }
 
 void jsonStackFit(JsonStack* stack)
@@ -428,14 +512,14 @@ JsonValue parseJson(JsonStr* s, i32 depth)
     panic("expected value in object");
 }
 
-// API
+// -------------------------API----------------------//
 
 JsonValue jsonParse(char const* str, size_t len)
 {
     if (!str)
         panic("str is null");
     JsonStr s = {
-        .str = (char *)str,
+        .str = (char*)str,
         .len = len,
         .at = 0,
     };
@@ -459,7 +543,7 @@ JsonValue jsonGet(JsonValue* v, i32 argc, ...)
     for (i32 i = 0; i < argc; i++) {
         switch (in->type) {
         case JSON_ARRAY: {
-            
+
             ret = arrayGet(in->arr, va_arg(args, i32));
             break;
         }
@@ -513,4 +597,25 @@ JsonValue jsonFromFile(char const* filename)
     free(buffer);
     fclose(fp);
     return ret;
+}
+
+JsonStack* jsonToString(JsonValue* v)
+{
+    JsonStack* ret = jsonStackNew(512);
+    jsonStackPushValue(ret, v);
+    jsonStackFit(ret);
+    return ret;
+}
+
+void jsonToFile(JsonValue* v, const char* filename)
+{
+    FILE* f = fopen(filename, "w");
+    if (!f)
+        panic("open failed");
+    JsonStack* s = jsonToString(v);
+
+    fwrite(s->v, s->cap, 1, f);
+
+    jsonStackFree(s);
+    fclose(f);
 }
