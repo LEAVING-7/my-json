@@ -34,21 +34,4 @@ ptr_t hashmapGet(HashMap* map, const ptr_t key);
 uint64_t SIP64(const uint8_t* in, const size_t inlen,
     uint64_t seed0, uint64_t seed1);
 
-typedef struct jv {
-    i32 type;
-    union {
-        bool b;
-        f64 f;
-        i64 i;
-        HashMap *obj;
-    };
-} jv;
-
-typedef struct debug {
-    u64 hash:48;
-    u64 dib:16;
-    jv *v;
-} Debug;
-
-
 #endif // HASHMAP_H
